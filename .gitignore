@@ -1,0 +1,9 @@
+# efficiency_agents 내부 전체 무시
+*
+
+# Git 설정 파일은 허용
+!.gitignore
+
+# 이 폴더만 허용
+!AI_Search/
+!AI_Search/**
