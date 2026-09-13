@@ -1,0 +1,16 @@
+# Creative Evaluation Agent — Python dependencies
+# Install with: pip install -r requirements.txt
+# (run_agent.bat does this automatically into a project-local .venv)
+
+openpyxl>=3.1.5          # Excel read/write (input data + all report outputs)
+PyYAML>=6.0              # config/*.yaml
+pydantic>=2.6            # structured schema validation for AI provider outputs
+python-dotenv>=1.0       # load .env for API keys (never hardcode keys)
+opencv-python-headless>=4.9   # video frame extraction + scene-change detection (no system ffmpeg required)
+Pillow>=10.0             # image handling for stills / carousel frames
+imageio-ffmpeg>=0.5      # bundled ffmpeg binary for audio extraction (transcript pipeline, no system install needed)
+openai>=1.30             # Engine 02 / Benchmark: OpenAI vision + Whisper transcription
+anthropic>=0.34          # Engine 02 / Benchmark: Claude vision
+
+# Dev / test only
+pytest>=8.0

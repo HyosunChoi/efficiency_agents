@@ -1,0 +1,98 @@
+# Python environment and cache
+.venv/
+__pycache__/
+*.pyc
+.env
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+
+
+# ==============================
+# cache
+# 실제 캐시 데이터는 무시하고
+# .gitkeep만 유지
+# ==============================
+
+# cache
+cache/asset_hashes/**
+!cache/asset_hashes/.gitkeep
+
+cache/creative_analysis/**
+!cache/creative_analysis/.gitkeep
+
+cache/audio_staging/**
+!cache/audio_staging/.gitkeep
+
+cache/frames/**
+!cache/frames/.gitkeep
+
+
+# ==============================
+# input
+# 실제 입력 데이터는 무시하고
+# assets / data 폴더와 .gitkeep만 유지
+# ==============================
+
+input/*
+
+!input/assets/
+input/assets/*
+!input/assets/.gitkeep
+
+!input/data/
+input/data/*
+!input/data/.gitkeep
+
+
+
+
+# ==============================
+# output
+# 실제 결과물은 무시하고
+# 폴더와 .gitkeep만 유지
+# ==============================
+
+output/latest/*
+!output/latest/
+!output/latest/.gitkeep
+
+output/archive/*
+!output/archive/
+!output/archive/.gitkeep
+
+
+# ==============================
+# benchmark
+# 하위 폴더 구조와 .gitkeep만 유지
+# 실제 이미지·영상·엑셀·결과 파일은 제외
+# ==============================
+
+benchmark/blind_assets/**
+!benchmark/blind_assets/.gitkeep
+
+benchmark/ground_truth/**
+!benchmark/ground_truth/.gitkeep
+
+benchmark/mapping/**
+!benchmark/mapping/.gitkeep
+
+benchmark/results/**
+!benchmark/results/.gitkeep
+!benchmark/results/**/
+!benchmark/results/**/.gitkeep
+
+benchmark/source_assets/**
+!benchmark/source_assets/.gitkeep
+
+
+# ==============================
+# logs
+# ==============================
+
+logs/*
+!logs/
+!logs/**/
+!logs/**/.gitkeep

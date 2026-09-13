@@ -1,0 +1,48 @@
+# Engine 02 / Benchmark Harness provider 설정.
+# pricing_usd 아래 input/output 단가는 각 provider 공식 문서에서 확인한 실제 단가다 (확인일 2026-09-12).
+# 가격은 provider 정책에 따라 이후 바뀔 수 있으니 정기적으로 재확인할 것.
+# 이미지(vision) 토큰 수는 실제 프레임 해상도 + 공식 문서의 계산 공식(src/pricing.py)으로 계산되는
+# 정밀 근사치이고, output 토큰 수(est_output_tokens_per_analysis)만 "예상치"다 — 모델 응답 길이는
+# 사전에 알 수 없기 때문. dry-run 화면에 이 구분이 명시된다.
+
+prompt_version: "v1"
+schema_version: "v1"
+
+frame_extraction:
+  # §6: 기본 프레임 후보. 초 단위. 영상 길이가 짧아 특정 시점이 없으면 그 시점은 생략(추정 금지).
+  candidate_timestamps_sec: [0, 0.5, 1.5, 3, 5, 10]
+  include_last_frame: true
+  # scene-change 대표 프레임: 프레임 간 히스토그램 차이가 이 값 이상이면 장면전환으로 간주 (0~1)
+  scene_change_hist_diff_threshold: 0.45
+  max_scene_change_frames: 5
+
+transcript:
+  provider: "openai"          # Whisper 계열. 두 vision provider 모두 동일 transcript를 입력받음.
+  model: "whisper-1"
+  max_file_size_mb: 25        # 초과 시 TRANSCRIPT_UNAVAILABLE_TOO_LARGE (임의 압축/추정 금지)
+
+# 1차 Benchmark 모델 (사용자 확정, 2026-09-12). 같은 "체급"으로 맞추려면 이 둘을 함께 바꿀 것 —
+# gpt-5.6-terra는 OpenAI 자체 문서 기준 mini급이 아니라 balanced 급이라 claude-sonnet-5와 유사 체급.
+providers:
+  openai:
+    vision_model: "gpt-5.6-terra"
+  claude:
+    vision_model: "claude-sonnet-5"
+
+# 실제 단가 (USD). 출처는 각 provider 공식 pricing 문서, 확인일 2026-09-12.
+pricing_usd:
+  openai:
+    vision_model: "gpt-5.6-terra"
+    input_per_1k_tokens: 0.002    # $2 / 1M tokens (표준 컨텍스트)
+    output_per_1k_tokens: 0.012   # $12 / 1M tokens (표준 컨텍스트)
+    est_output_tokens_per_analysis: 500  # 예상치 — 실제 응답 길이는 사전에 알 수 없음
+    source: "https://developers.openai.com/api/docs/models/gpt-5.6-terra (2026-09-12 확인)"
+  whisper:
+    per_minute: 0.006
+    source: "https://developers.openai.com/api/docs/pricing (2026-09-12 확인)"
+  claude:
+    vision_model: "claude-sonnet-5"
+    input_per_1k_tokens: 0.002    # $2 / MTok (base input, standard/도입 가격이 표준가로 확정됨)
+    output_per_1k_tokens: 0.010   # $10 / MTok
+    est_output_tokens_per_analysis: 500  # 예상치 — 실제 응답 길이는 사전에 알 수 없음
+    source: "https://platform.claude.com/docs/en/about-claude/pricing (2026-09-12 확인)"

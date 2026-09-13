@@ -1,0 +1,94 @@
+# 광고 운영 데이터 엑셀의 컬럼명은 매체/대행사마다 표기가 다를 수 있어 별칭 매핑을 둔다.
+# 이것은 "컬럼명 동의어 매핑"일 뿐, 비즈니스 의미를 추정하는 것이 아니다.
+# 여기 없는 헤더가 들어오면 loader.py는 추측하지 않고 필수 필드 누락 -> CHECK/PARSE_ERROR로 보고한다.
+# 사용자가 자신의 실제 헤더를 여기에 추가하면 된다 (표준 필드명은 좌측 key를 그대로 유지할 것).
+
+Product:
+  - "제품명"
+  - "제품"
+  - "Product"
+  - "Product Name"
+
+Objective:
+  - "목적"
+  - "캠페인 목적"
+  - "Objective"
+  - "Campaign Objective"
+  - "타겟팅"   # 예: "전환 - 내관심사", "유입_논타겟" — 이미 config의 전환/유입 키워드로 분류됨
+
+Media:
+  - "매체"
+  - "매체명"
+  - "채널"
+  - "Media"
+  - "Channel"
+  - "Platform"
+
+Creative_Name:
+  - "소재명"
+  - "소재"
+  - "Creative"
+  - "Creative Name"
+  - "Ad Name"
+
+Impressions:
+  - "노출"
+  - "노출수"
+  - "Impressions"
+  - "Impr."
+
+Clicks:
+  - "클릭"
+  - "클릭수"
+  - "Clicks"
+
+Spend:
+  - "광고비"
+  - "지출"
+  - "Spend"
+  - "Cost"
+  - "Amount Spent"
+  - "광고비 (gross, vat-)"
+
+Conversions:
+  - "전환"
+  - "전환수"
+  - "구매수"
+  - "Conversions"
+  - "Purchases"
+  - "Results"
+
+Revenue:
+  - "매출"
+  - "수익"
+  - "Revenue"
+  - "Purchase Value"
+  - "Conversion Value"
+  - "전환매출"
+
+Date:
+  - "날짜"
+  - "일자"
+  - "Date"
+  - "Day"
+
+# 선택 필드 (V2 Winner 해석 레이어, spec §5 Allocation Context). 없으면 전부 UNKNOWN 처리—
+# 자동배분 여부를 아는 별도 컬럼이 있는 계정만 채워 넣으면 된다. 임의 추정 금지.
+Allocation_Context:
+  - "배분방식"
+  - "예산배분"
+  - "Allocation_Context"
+  - "Allocation"
+  - "Budget Allocation"
+
+# 필수 필드 (없으면 PARSE_ERROR로 즉시 중단, 조용히 진행하지 않음)
+required_fields:
+  - Product
+  - Objective
+  - Media
+  - Creative_Name
+  - Impressions
+  - Clicks
+  - Spend
+  - Conversions
+  - Revenue

@@ -1,0 +1,81 @@
+# Engine 01 평가 규칙. 수치는 Creative_Evaluation_Agent_Build_Spec_V1.md 원문 그대로.
+# 임의로 만든 값이 아님 — 스펙에 없는 값(예: around_benchmark_tolerance)은 명시적으로 비활성 처리.
+
+objective_classification:
+  conversion_keywords: ["전환", "구매", "conversion", "purchase"]
+  traffic_keywords: ["유입", "트래픽", "traffic"]
+  # 위 키워드 중 어디에도 해당하지 않으면 UNKNOWN + CHECK 상태 (임의 추정 금지)
+  unclassified_label: "UNKNOWN"
+  unclassified_status: "CHECK"
+
+reliability:
+  conversion:
+    R0: {min: 0, max: 2}
+    R1: {min: 3, max: 4}
+    R2: {min: 5, max: 9}
+    R3: {min: 10, max: null}   # 10+
+  traffic:
+    R0: {min: 0, max: 29}      # <30 clicks
+    R1: {min: 30, max: 49}
+    R2: {min: 50, max: 99}
+    R3: {min: 100, max: null}  # 100+
+  # R0/R1은 확정 Winner/Underperformer 판정을 하지 않는다 (evaluator.py 강제).
+
+scale:
+  bands:
+    - {label: "Under-delivery", max_exclusive: 0.5}
+    - {label: "Low Scale", min_inclusive: 0.5, max_exclusive: 0.8}
+    - {label: "Normal", min_inclusive: 0.8, max_inclusive: 1.2}
+    - {label: "High", min_exclusive: 1.2, max_inclusive: 1.5}
+    - {label: "Strong", min_exclusive: 1.5}
+  final_classification_threshold: 0.8   # Scale Index >= 0.8 이면 "Scale 충족"으로 취급
+
+traffic_promising_interpretation:
+  # §5 Traffic 최종분류의 "PROMISING: R0/R1 + CPC/CTR 유리"는 명세에 정확한 연산자가 없다.
+  # 여기서는 R2/R3 분기와 동일한 "유리함" 방향성(CPC<=BM 이거나 CTR>=BM)을 OR로 적용한다.
+  # TODO(user): 이 해석이 의도와 다르면 아래 값을 바꿔달라 (현재 코드가 참조하는 유일한 스위치).
+  operator: "OR"   # "OR": CPC<=BM 이거나 CTR>=BM 중 하나만 유리해도 PROMISING / "AND": 둘 다 유리해야 함
+
+# Final Classification 별 Action 문구 템플릿 (감사 가능하도록 코드가 아닌 config에 둠).
+# Final Comment는 실제 근거값(KPI actual/BM/Reliability/Scale)을 조합해 evaluator.py가 조립하며
+# 아래 Action 문구와는 별개다.
+action_templates:
+  WINNER: "성과 검증됨 — 현재 수준 유지 및 확장 검토"
+  "HIDDEN GEM": "성과는 좋으나 예산 비중이 낮음 — 예산 확대 검토"
+  "BUDGET DRAINER": "예산은 충분히 투입됐으나 성과 미달 — 예산 축소/소재 교체 검토"
+  UNDERPERFORMER: "성과 미달 — 소재 교체 또는 중단 검토"
+  PROMISING: "데이터 축적 중 — 추가 관찰 필요, 확정 판정 보류"
+  UNRESOLVED: "데이터 부족 및 성과 미달 — 추가 관찰 또는 중단 검토"
+  "TRAFFIC WINNER": "트래픽 성과 검증됨 — 현재 수준 유지 및 확장 검토"
+  "TRAFFIC HIDDEN GEM": "트래픽 성과는 좋으나 예산 비중이 낮음 — 예산 확대 검토"
+  "COST EFFICIENT": "비용 효율은 좋으나 후킹력 약함 — 크리에이티브 후킹 개선 검토"
+  "HOOK STRONG": "후킹력은 좋으나 비용 비효율 — 타겟팅/입찰 점검 검토"
+  CHECK: "Objective 분류 불가 — 원본 데이터 확인 필요"
+
+# Winner 해석 레이어 (Build Spec V2 §5). Final_Classification과는 별개 레이어 —
+# WINNER/HIDDEN GEM(Conversion), TRAFFIC WINNER/TRAFFIC HIDDEN GEM(Traffic)로 이미 분류된
+# (=Benchmark 이상 효율) 소재들 중에서만 2차 해석을 한다. 새로운 숫자 threshold는 만들지 않고
+# 기존 scale.final_classification_threshold(0.8)를 그대로 재사용한다.
+#
+# Primary_Winner 자동확정은 Efficiency Leader == Scaled Winner인 경우에만 한다.
+# 스펙 V2 §5 "중요": "ROAS 차이가 몇 % 이내면 Scale을 우선한다" 같은 고정 threshold는 두지 않음 —
+# 두 후보가 다른 소재면 규칙엔진은 CHECK로 남기고 Human_Override/Primary_Winner_Reason으로
+# 사람이 최종 확정한다 (Human Feedback이 쌓이면 Backtest로 정교화 예정, spec §10).
+winner_interpretation:
+  eligible_final_classifications:
+    Conversion: ["WINNER", "HIDDEN GEM"]
+    Traffic: ["TRAFFIC WINNER", "TRAFFIC HIDDEN GEM"]
+  scaled_winner_final_classifications:   # Scale 조건까지 충족한 하위집합 (Delivery 1위가 Scaled Winner)
+    Conversion: ["WINNER"]
+    Traffic: ["TRAFFIC WINNER"]
+
+# Observed_Performance (Benchmark Harness ground truth 산출용, §9)
+# 스펙은 ABOVE_BENCHMARK / BELOW_BENCHMARK 이분을 기본으로 하고 "필요 시" AROUND_BENCHMARK를 허용한다고만
+# 명시하고 정확한 tolerance %는 명세에 없음 (§9: "정확한 세부 기준은 config로 분리한다").
+# => 값 임의 결정 금지. 기본은 비활성(이분법)이며, 사용자가 아래 두 값을 채우면 AROUND 밴드가 켜진다.
+ground_truth:
+  conversion_metric: "ROAS"   # 제품×Objective ROAS BM 기준
+  traffic_metric: "CPC"       # 제품×Objective CPC BM 중심 (CTR 보조)
+  around_benchmark:
+    enabled: false             # TODO(user): 명세에 tolerance 기준 없음. 필요 시 true로 켜고 아래 값 채울 것.
+    tolerance_pct: null        # 예: 0.05 = BM 대비 ±5% 이내를 AROUND_BENCHMARK로 처리

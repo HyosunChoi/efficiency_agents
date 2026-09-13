@@ -1,0 +1,26 @@
+# 매체명/소재명 정규화 규칙 (§4 소재 매칭 원칙).
+# 여기서 하는 정규화는 "명백한 표기 정규화"만 허용한다 (의미 추정 매칭 금지).
+# 어떤 규칙에도 안 걸리면 원문 그대로 두고, 매칭 실패 시 ASSET_NOT_FOUND/CHECK로 남긴다.
+
+# 비교 시 제거할 파일 확장자 (대소문자 무시)
+strip_extensions:
+  - .mp4
+  - .mov
+  - .jpg
+  - .jpeg
+  - .png
+  - .webp
+
+# 문자 단위 표기 정규화 (순서대로 적용)
+character_normalization:
+  full_width_to_half_width: true   # 전각 문자 -> 반각
+  strip_leading_trailing_whitespace: true
+  collapse_internal_whitespace: true   # 연속 공백 1칸으로
+  unicode_nfkc: true                   # 유니코드 정규화 (자모 결합 등)
+
+# 매체명 표기 통일 (좌: 정규화 후 비교값, 우: 인정되는 원문 변형들)
+# 명세에 없는 새 매체 별칭을 임의로 추가하지 말 것 — 필요 시 사용자가 채운다.
+media_aliases: {}
+
+# Creative_ID 조합 규칙 (§2)
+creative_id_template: "{normalized_media}__{normalized_creative_name}"

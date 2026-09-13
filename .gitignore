@@ -7,3 +7,6 @@
 # 이 폴더만 허용
 !AI_Search/
 !AI_Search/**
+
+!creative_evaluation_agent/
+!creative_evaluation_agent/**
